@@ -1,0 +1,114 @@
+# ============================================================
+# Python / bytecode
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-wheel-metadata/
+
+# ============================================================
+# Virtual environments
+# ============================================================
+venv/
+env/
+ENV/
+.venv/
+.venv*/
+.python-version
+
+# ============================================================
+# IDE / editor
+# ============================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+.trae/
+
+# ============================================================
+# OS / filesystem noise
+# ============================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ============================================================
+# Logs / runtime
+# ============================================================
+logs/
+*.log
+*.log.*
+*.pid
+*.seed
+*.pid.lock
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.temp/
+.tmp/
+
+# ============================================================
+# Project-specific: user uploads (privacy + huge!)
+# ============================================================
+uploads/*
+!uploads/.gitkeep
+
+# ============================================================
+# Project-specific: extracted InsightFace models (HUGE!)
+#   buffalo_l.zip can be re-unzipped by main.py automatically
+# ============================================================
+.insightface_models/
+.models_cache/
+
+# NOTE: ~/.insightface (the usual models root) is outside the
+# repo, so no ignore entry needed here.
+
+# ============================================================
+# Env / secrets
+# ============================================================
+.env
+.env.*
+!.env.example
+secrets.json
+*.pem
+*.key
+
+# ============================================================
+# Web assets that are generated / temporary
+# ============================================================
+node_modules/
+*.map
+static/dist/
