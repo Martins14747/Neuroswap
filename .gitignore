@@ -121,3 +121,6 @@ node_modules/
 *.map
 static/dist/
 *.zip
+# Local model archive
+# Keep this file local and download it on first run if needed
+buffalo_l.zip
