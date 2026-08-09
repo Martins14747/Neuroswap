@@ -211,3 +211,9 @@ This repository ships `buffalo_l.zip` **for development convenience only**. The 
 2. Make your changes
 3. Run `./venv/bin/python test_backend.py` → **56+ / 58**
 4. Commit + push + open PR
+
+---
+
+## Deploy to production
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for Render (Docker, recommended) and Vercel (experimental) setup.

@@ -167,8 +167,8 @@ t('HTTP 200', r.status_code == 200)
 t('keys: {current_target_id, targets}', set(r.json().keys()) == {'current_target_id','targets'})
 
 print('\n=== 10. Static file serving ===')
-r = requests.get(f'{BASE}/static-root/Keanu%20Reeves.jpeg', timeout=5, stream=True)
-t('/static-root/Keanu%20Reeves.jpeg HTTP 200', r.status_code == 200)
+r = requests.get(f'{BASE}/static-root/wsproto_stub.py', timeout=5, stream=True)
+t('/static-root/wsproto_stub.py HTTP 200', r.status_code == 200)
 t('bytes received > 1000', len(r.content) > 1000)
 
 print('\n=== 11. CORS middleware (OPTIONS preflight + GET) ===')

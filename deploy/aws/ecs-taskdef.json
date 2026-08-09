@@ -1,0 +1,56 @@
+{
+  "family": "neuroswap",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "2048",
+  "memory": "4096",
+  "ephemeralStorage": { "sizeInGiB": 100 },
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/neuroswapTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "neuroswap",
+      "image": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/neuroswap:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 8000, "hostPort": 8000, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "PORT", "value": "8000" },
+        { "name": "NEUROSWAP_DATA_DIR", "value": "/app/data" },
+        { "name": "INSIGHTFACE_ROOT", "value": "/app/data/.insightface_models" },
+        { "name": "NEUROSWAP_STORAGE", "value": "s3" },
+        { "name": "NEUROSWAP_S3_BUCKET", "value": "<S3_BUCKET>" },
+        { "name": "NEUROSWAP_S3_PREFIX", "value": "neuroswap" },
+        { "name": "NEUROSWAP_S3_RESTORE_LIMIT", "value": "20" },
+        { "name": "CORS_ORIGINS", "value": "https://<YOUR_DOMAIN>" },
+        { "name": "NEUROSWAP_PUBLIC_API_URL", "value": "https://<YOUR_DOMAIN>" },
+        { "name": "NEUROSWAP_PUBLIC_WS_URL", "value": "wss://<YOUR_DOMAIN>" }
+      ],
+      "secrets": [
+        {
+          "name": "NEUROSWAP_API_KEY",
+          "valueFrom": "arn:aws:ssm:<REGION>:<ACCOUNT_ID>:parameter/neuroswap/api_key"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/neuroswap",
+          "awslogs-region": "<REGION>",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""
+        ],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 120
+      }
+    }
+  ]
+}

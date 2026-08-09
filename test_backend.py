@@ -7,6 +7,8 @@ if venv_sp not in sys.path: sys.path.insert(0, venv_sp)
 for p in site.getsitepackages() + [site.getusersitepackages(), '/usr/lib/python3/dist-packages']:
     if os.path.isdir(p) and p not in sys.path: sys.path.append(p)
 
+os.environ.setdefault("CORS_ORIGINS", "http://x.com")
+
 import numpy as np, cv2
 import insightface
 
@@ -34,6 +36,7 @@ main.models_error = None
 main._load_models_background = lambda: None
 
 import uvicorn, requests, websocket
+import subprocess, tempfile
 
 def free_port():
     s=socket.socket(); s.bind(('127.0.0.1',0)); p=s.getsockname()[1]; s.close(); return p
@@ -88,10 +91,10 @@ rs=requests.get(f'{BASE}/target-status',timeout=5); t('target set true',rs.json(
 print('8. 404 select')
 r=requests.post(f'{BASE}/select-target/xxxx',timeout=5); t('404',r.status_code==404)
 print('9. static serving')
-r=requests.get(f'{BASE}/static-root/Keanu%20Reeves.jpeg',timeout=5); t('200',r.status_code==200); t('>1KB',len(r.content)>1000)
+r=requests.get(f'{BASE}/static-root/wsproto_stub.py',timeout=5); t('200',r.status_code==200); t('>1KB',len(r.content)>1000)
 print('10. CORS')
 r=requests.options(f'{BASE}/target-status',headers={'Origin':'http://x.com','Access-Control-Request-Method':'GET','Access-Control-Request-Headers':'X-Test'},timeout=5)
-acao=r.headers.get('Access-Control-Allow-Origin',''); t('OPTIONS ok',r.status_code in (200,204)); t('ACAO valid',acao in ('*','http://x.com'))
+acao=r.headers.get('Access-Control-Allow-Origin',''); t('OPTIONS ok',r.status_code in (200,204)); t('ACAO echoed',acao == 'http://x.com')
 print('11. WS — welcome, intensity, roundtrip')
 try:
     ws=websocket.create_connection(WS_BASE,timeout=12)
@@ -157,6 +160,68 @@ try:
     ws.close()
 finally:
     with main._state_lock: main.current_target_id=orig_cid
+
+print('14. video upload/analyze/process/download')
+try:
+    ffmpeg = subprocess.run(['bash','-lc','command -v ffmpeg'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+    ffprobe = subprocess.run(['bash','-lc','command -v ffprobe'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip()
+    t('ffmpeg present', bool(ffmpeg))
+    t('ffprobe present', bool(ffprobe))
+    if ffmpeg and ffprobe:
+        tmpdir = tempfile.mkdtemp(prefix='neuroswap_test_')
+        in_path = os.path.join(tmpdir, 'in.mp4')
+        out_path = os.path.join(tmpdir, 'out.mp4')
+        cmd = [
+            ffmpeg, '-y',
+            '-f', 'lavfi', '-i', 'testsrc=size=320x240:rate=15',
+            '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100',
+            '-t', '2',
+            '-pix_fmt', 'yuv420p',
+            '-c:v', 'libx264', '-preset', 'ultrafast',
+            '-c:a', 'aac',
+            '-shortest',
+            in_path
+        ]
+        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+        with open(in_path, 'rb') as f:
+            r = requests.post(f'{BASE}/upload-video', files={'file': ('in.mp4', f, 'video/mp4')}, timeout=120)
+        t('upload-video 200', r.status_code == 200)
+        vid = r.json().get('video_id')
+        t('video_id returned', bool(vid))
+        r = requests.post(f'{BASE}/analyze-video', json={'video_id': vid}, timeout=120)
+        t('analyze-video 200', r.status_code == 200)
+        tracks = r.json().get('tracks') or []
+        t('tracks array', isinstance(tracks, list))
+        r = requests.post(f'{BASE}/process-video', json={'video_id': vid, 'intensity': 1.0, 'face_map': {}}, timeout=120)
+        t('process-video 200', r.status_code == 200)
+        job = r.json().get('job_id')
+        t('job_id returned', bool(job))
+        status = None
+        for _ in range(80):
+            rs = requests.get(f'{BASE}/video-status/{job}', timeout=20)
+            if rs.status_code != 200:
+                time.sleep(0.25)
+                continue
+            status = rs.json()
+            if status.get('status') in ('done','error'):
+                break
+            time.sleep(0.25)
+        t('job done', status is not None and status.get('status') == 'done')
+        if status and status.get('status') == 'done':
+            dl = requests.get(f'{BASE}/download-video/{job}', timeout=120)
+            t('download-video 200', dl.status_code == 200 and len(dl.content) > 10000)
+            with open(out_path, 'wb') as f:
+                f.write(dl.content)
+            probe = subprocess.run([ffprobe, '-v', 'error', '-show_streams', '-of', 'json', out_path],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True).stdout
+            meta = json.loads(probe or '{}')
+            streams = meta.get('streams') or []
+            has_v = any(s.get('codec_type') == 'video' for s in streams)
+            has_a = any(s.get('codec_type') == 'audio' for s in streams)
+            t('output has video', has_v)
+            t('output has audio', has_a)
+except Exception as e:
+    t('video pipeline exception: '+repr(e), False)
 
 print()
 print(f'RESULT: {P} PASSED, {F} FAILED out of {P+F}')

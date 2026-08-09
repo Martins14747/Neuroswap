@@ -81,6 +81,14 @@ htmlcov/
 .tmp/
 
 # ============================================================
+# Project-specific: runtime media (gitignored)
+# ============================================================
+videos/*
+!videos/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
+# ============================================================
 # Project-specific: user uploads (privacy + huge!)
 # ============================================================
 uploads/*
@@ -112,3 +120,4 @@ secrets.json
 node_modules/
 *.map
 static/dist/
+*.zip

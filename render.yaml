@@ -1,0 +1,29 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# Deploy: connect repo → Render detects this file → Apply
+services:
+  - type: web
+    name: neuroswap
+    runtime: docker
+    plan: standard
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: NEUROSWAP_DATA_DIR
+        value: /app/data
+      - key: NEUROSWAP_SERVE_UPLOADS
+        value: "1"
+      - key: NEUROSWAP_API_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: MAX_VIDEO_UPLOAD_BYTES
+        value: "536870912"
+      - key: INSIGHTFACE_ROOT
+        value: /app/data/.insightface_models
+    disk:
+      name: neuroswap-data
+      mountPath: /app/data
+      sizeGB: 2
