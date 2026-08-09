@@ -96,10 +96,14 @@ uploads/*
 
 # ============================================================
 # Project-specific: extracted InsightFace models (HUGE!)
-#   buffalo_l.zip can be re-unzipped by main.py automatically
+#   Model files are downloaded or unpacked locally and kept out of GitHub
 # ============================================================
 .insightface_models/
 .models_cache/
+*.onnx
+*.bin
+*.pt
+*.pth
 
 # NOTE: ~/.insightface (the usual models root) is outside the
 # repo, so no ignore entry needed here.

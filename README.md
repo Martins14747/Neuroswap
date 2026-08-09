@@ -8,7 +8,7 @@ A cyberpunk-styled web interface for **real-time webcam face tracking + face swa
 
 ## ✨ Features
 
-- **Real face detection / landmarking / recognition** — uses bundled `buffalo_l.zip` (326 MB) — no internet required after first setup.
+- **Real face detection / landmarking / recognition** — uses local InsightFace model files and auto-downloads them when needed; no large model binaries are committed to GitHub.
 - **Webcam → WebSocket → Processed frame round-trip** — frames sent as base64 JPEG, swapped frame + face metadata returned as JSON.
 - **Intensity slider (alpha blend)** — user-controlled swap strength via `cv2.addWeighted`.
 - **Drag-and-drop target upload** — drag a headshot onto the dropzone. Auto-generates padded 160×160 face-thumbnails for the history strip.
@@ -72,9 +72,9 @@ pip install -r requirements.txt
 
 If you already have model files you can skip download entirely.
 
-**Option A — bundled zip (preferred):**
+**Option A — local model cache (preferred):**
 
-Ensure `buffalo_l.zip` is next to `main.py` (it is already committed with the repo). On first boot, `main.py` extracts it to `~/.insightface/models/buffalo_l/` (or `$INSIGHTFACE_ROOT/models/buffalo_l/` if set).
+If you already have a local InsightFace model archive or extracted model directory, place it in the standard InsightFace locations (for example `~/.insightface/models/` or `$INSIGHTFACE_ROOT/models/`). On first boot, `main.py` will use those files directly and avoid any GitHub-sized assets.
 
 **Option B — download (requires GitHub HTTPS access):**
 
@@ -127,7 +127,6 @@ face-swap-web/
 ├── backend.py                  # Legacy module (kept for reference)
 ├── test_backend.py             # pytest-style end-to-end suite (no pytest needed)
 ├── requirements.txt            # Pinned install deps
-├── buffalo_l.zip               # BUNDLED InsightFace buffalo_l models (326MB, 5 onnx)
 ├── .gitignore
 ├── templates/
 │   └── index.html              # Single-file HUD frontend
@@ -185,7 +184,7 @@ This repository ships `buffalo_l.zip` **for development convenience only**. The 
 
 ## 🧪 Known limitations (informational, not bugs)
 
-- **`inswapper_128.onnx` (~525 MB)** is NOT bundled with the repo (too big for GitHub). It's fetched from GitHub releases by default; if your network blocks it you'll get PARTIAL mode (detector real, swapper = placeholder neon overlay). Place a local copy at:
+- **`inswapper_128.onnx` (~525 MB)** is NOT bundled with the repo (too large for GitHub). It's fetched from GitHub releases by default; if your network blocks it you'll get PARTIAL mode (detector real, swapper = placeholder neon overlay). Place a local copy at:
   ```
   ~/.insightface/models/inswapper_128.onnx
   ```
